@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>VaDA Video Switcher</title>
+    <link rel="stylesheet" href="styles-copy-2.css" />
+  </head>
+
+  <body>
+    <div class="app">
+      <div class="top-area">
+        <div class="monitor-container">
+          <div class="monitor-title">Preview</div>
+          <div class="monitor preview">
+            <div id="preview-screen" class="screen">
+              <video id="v-preview" autoplay playsinline muted></video>
+              <div class="placeholder-text">PREVIEW</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="center-controls">
+          <div class="timers">
+            <div class="rec-timer">● REC 00:00:00</div>
+            <div class="live-timer">LIVE 00:00:00</div>
+          </div>
+
+          <select id="transition-style" class="dropdown">
+            <option value="fade">Fade</option>
+            <option value="cut">Cut</option>
+          </select>
+
+          <button class="plus" id="take-execute">+</button>
+
+          <select id="take-mode" class="dropdown">
+            <option value="auto">Auto (1.0s)</option>
+          </select>
+
+          <button id="take-btn" class="btn-ui-take">TAKE</button>
+        </div>
+
+        <div class="monitor program">
+          <div id="program-screen" class="screen">
+              <video id="v-program-bg" autoplay playsinline style="position: absolute; z-index: 1;"></video>
+              <video id="v-program" autoplay playsinline style="position: absolute; z-index: 2; opacity: 1; transition: opacity 0.5s ease;"></video>
+              <div class="placeholder-text">LIVE FEED</div>
+          </div>
+        </div>
+
+        <div class="broadcast">
+          <select class="dropdown">
+            <option>Record</option>
+          </select>
+          <button class="plus">+</button>
+        </div>
+      </div>
+
+      <div class="camera-section">
+        <div class="camera-grid" id="dynamic-camera-grid"></div>
+      </div>
+
+      <div class="bottom-area">
+        <div class="section-group">
+          <div class="sidebar-v">
+            <div class="tool-icon" data-tab="overlay">🔳</div>
+            <div class="tool-icon" data-tab="layouts">▤</div>
+            <div class="tool-icon" data-tab="templates">⛶</div>
+          </div>
+          <div class="media-bin" id="dynamic-media-bin">
+            <div class="bin-context active" id="bin-overlay">
+              <div class="grid-item"><span class="label-tiny">GFX 1</span></div>
+              <div class="grid-item"><span class="label-tiny">GFX 2</span></div>
+              <div class="grid-item"></div>
+              <div class="grid-item"></div>
+              <div class="grid-item"></div>
+              <div class="grid-item"></div>
+              <div class="grid-item"></div>
+              <div class="grid-item"></div>
+            </div>
+
+            <div class="bin-context" id="bin-layouts">
+              <div class="grid-item layout-thumb">QUAD</div>
+              <div class="grid-item layout-thumb">1+3</div>
+              <div class="grid-item layout-thumb">SIDE</div>
+              <div class="grid-item"></div>
+            </div>
+
+            <div class="bin-context" id="bin-templates">
+              <div class="grid-item temp-thumb">NEWS</div>
+              <div class="grid-item temp-thumb">SPORTS</div>
+              <div class="grid-item temp-thumb">TALK</div>
+              <div class="grid-item"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-v">
+          <div id="popup-trigger" class="tool-icon" data-tab="effects">✨</div>
+          <div class="tool-icon" data-tab="text">T</div>
+          <div class="tool-icon" data-tab="audio">🔊</div>
+        </div>
+
+        <div class="section-group flex-grow">
+          <div class="sub-monitor">
+            <div class="sub-screen"></div>
+            <div class="sub-footer">
+              <button class="btn-mini">Save</button>
+              <button class="btn-mini">New</button>
+              <button class="btn-mini right">To Layouts</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-inspector" id="main-inspector">
+          <div class="ins-title" id="inspector-title">PIP / ChromaKey</div>
+
+          <div class="ins-content">
+            <div id="content-pip" class="tab-content active">
+              <div class="pip-container">
+                <div class="ins-row">
+                  <span class="label-tiny">Label</span>
+                  <input
+                    type="text"
+                    class="ins-input"
+                    placeholder="PIP_CAM_01"
+                  />
+                </div>
+                <div class="ins-row">
+                  <span class="label-tiny">Channel</span>
+                  <select class="ins-input">
+                    <option>CAM 1</option>
+                    <option>CAM 2</option>
+                  </select>
+                </div>
+
+                <div class="chroma-toggle-row">
+                  <input type="checkbox" id="chroma-enable" />
+                  <label for="chroma-enable" class="label-tiny">Chroma</label>
+                </div>
+
+                <div class="chroma-preview-grid">
+                  <div class="chroma-video-preview" id="pip-video-preview">
+                    <span class="placeholder-text" style="font-size: 8px"
+                      >NO FEED</span
+                    >
+                  </div>
+                  <div class="chroma-controls">
+                    <div class="ctrl-item">
+                      <span class="label-tiny">Color</span>
+                      <input
+                        type="color"
+                        id="chroma-color-picker"
+                        value="#00ff00"
+                      />
+                    </div>
+                    <div class="ctrl-item">
+                      <span class="label-tiny">Margin</span>
+                      <div class="mini-slider-track">
+                        <div class="mini-slider-fill" id="margin-fill"></div>
+                        <input
+                          type="range"
+                          class="mini-real-slider"
+                          id="margin-slider"
+                        />
+                      </div>
+                    </div>
+                    <div class="ctrl-item">
+                      <span class="label-tiny">Edge</span>
+                      <div class="mini-slider-track">
+                        <div class="mini-slider-fill" id="edge-fill"></div>
+                        <input
+                          type="range"
+                          class="mini-real-slider"
+                          id="edge-slider"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="shape-section">
+                  <span class="label-tiny">Shape</span>
+                  <div class="shape-grid">
+                    <label><input type="checkbox" /> Outline</label>
+                    <label
+                      ><input type="checkbox" /> Color
+                      <div class="tiny-color-box"></div
+                    ></label>
+                    <label><input type="checkbox" /> Round</label>
+                    <label><input type="checkbox" /> Bold</label>
+                  </div>
+                </div>
+
+                <div class="move-scale-section">
+                  <span class="label-tiny">Move / Scale</span>
+                  <div class="radio-group">
+                    <label><input type="radio" name="ms" checked /> Area</label>
+                    <label><input type="radio" name="ms" /> Picture</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="content-warping" class="tab-content">
+              <div class="warp-slider-container">
+                <div class="warp-tooltip" id="warp-tooltip">0</div>
+
+                <div class="custom-slider-track">
+                  <div class="slider-fill-gradient" id="warp-fill"></div>
+                  <input
+                    type="range"
+                    min="-1000"
+                    max="1000"
+                    value="0"
+                    class="real-slider"
+                    id="warp-slider"
+                  />
+                </div>
+
+                <div class="warp-labels">
+                  <div class="label-group">
+                    <span class="label-main">FISHEYE</span>
+                    <span class="label-sub">(-) BARREL</span>
+                  </div>
+                  <div class="label-group text-right">
+                    <span class="label-main">PINCUSHION</span>
+                    <span class="label-sub">(+) REVERSE</span>
+                  </div>
+                </div>
+
+                <button class="btn-vada-utility" id="reset-warp-btn">
+                  <span class="led-dot"></span> RESET LENS EFFECT
+                </button>
+              </div>
+            </div>
+
+            <div id="content-vcam" class="tab-content">
+              <div class="vcam-container">
+                <div class="fine-bar-container horizontal pan-area">
+                  <div class="fine-label">PAN</div>
+                  <div class="fine-track"><div class="fine-handle"></div></div>
+                </div>
+
+                <div class="joystick-main-row">
+                  <div class="fine-bar-container vertical tilt-area">
+                    <div class="fine-label">TILT</div>
+                    <div class="fine-track">
+                      <div class="fine-handle"></div>
+                    </div>
+                  </div>
+
+                  <div class="joystick-outer-ring">
+                    <div class="joystick-base" id="joy-base">
+                      <div class="joystick-stick" id="joy-stick"></div>
+                    </div>
+                  </div>
+
+                  <div class="fine-bar-container vertical zoom-area">
+                    <div class="fine-label">ZOOM</div>
+                    <div class="fine-track zoom-track">
+                      <div class="fine-handle"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <button class="btn-vada-utility" id="vcam-reset">
+                  RESET CONTROLLER
+                </button>
+              </div>
+            </div>
+
+            <div id="content-text" class="tab-content">
+              <div class="text-panel-container">
+                <div class="ins-row">
+                  <span class="label-tiny">Label</span>
+                  <input
+                    type="text"
+                    class="ins-input"
+                    placeholder="Enter text..."
+                  />
+                </div>
+
+                <div class="ins-row">
+                  <span class="label-tiny">Font</span>
+                  <select class="ins-input">
+                    <option>Inter</option>
+                    <option>Segoe UI</option>
+                    <option>Roboto</option>
+                  </select>
+                </div>
+
+                <div class="ins-row split">
+                  <select class="ins-input mini">
+                    <option>24px</option>
+                  </select>
+                  <span class="label-tiny">Weight</span>
+                  <select class="ins-input mini">
+                    <option>Bold</option>
+                  </select>
+                </div>
+
+                <div class="ins-row">
+                  <div class="color-opacity-group">
+                    <span class="label-tiny">Color</span>
+                    <input type="color" id="text-color" value="#ffffff" />
+                  </div>
+                  <div class="color-opacity-group flex-grow">
+                    <span class="label-tiny">Opacity</span>
+                    <div class="mini-slider-track">
+                      <div
+                        class="mini-slider-fill"
+                        id="text-opacity-fill"
+                      ></div>
+                      <input
+                        type="range"
+                        class="mini-real-slider"
+                        id="text-opacity-slider"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="alignment-row">
+                  <button class="align-btn active">≡</button>
+                  <button class="align-btn">≣</button>
+                  <button class="align-btn">≡</button>
+                  <div class="divider-v"></div>
+                  <button class="align-btn">‾</button>
+                  <button class="align-btn">-</button>
+                  <button class="align-btn active">_</button>
+                </div>
+
+                <div class="ins-section">
+                  <span class="label-tiny">Scroll Speed</span>
+                  <div class="mini-slider-track">
+                    <div class="mini-slider-fill" id="scroll-speed-fill"></div>
+                    <input
+                      type="range"
+                      class="mini-real-slider"
+                      id="scroll-speed-slider"
+                    />
+                  </div>
+                </div>
+
+                <div class="ins-section">
+                  <span class="label-tiny">Background</span>
+                  <div class="ins-row">
+                    <div class="color-opacity-group">
+                      <span class="label-tiny">Color</span>
+                      <input type="color" id="bg-text-color" value="#333333" />
+                    </div>
+                    <div class="color-opacity-group flex-grow">
+                      <span class="label-tiny">Opacity</span>
+                      <div class="mini-slider-track">
+                        <div
+                          class="mini-slider-fill"
+                          id="bg-opacity-fill"
+                        ></div>
+                        <input
+                          type="range"
+                          class="mini-real-slider"
+                          id="bg-opacity-slider"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ins-row upload-footer">
+                  <span class="label-tiny">Upload Image</span>
+                  <button class="btn-icon-small">📁</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="content-audio" class="tab-content">
+              <div class="audio-panel-container">
+                <div class="mixer-scroll-area" id="dynamic-mixer-area"></div>
+
+                <div class="mixer-footer">
+                  <div class="master-fader-unit">
+                    <span class="label-tiny">Master</span>
+                    <div class="master-track-h">
+                      <div class="master-fill-h" id="master-fill"></div>
+                      <input
+                        type="range"
+                        id="master-slider"
+                        min="0"
+                        max="100"
+                        value="100"
+                        class="master-real-slider"
+                      />
+                    </div>
+                  </div>
+                  <label class="auto-av-label">
+                    <input type="checkbox" id="auto-av-control" />
+                    <span class="label-tiny">Auto AV Control</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div id="content-overlay" class="tab-content">
+              <div class="ins-section">
+                <span class="label-tiny">Downstream Keyer (DSK)</span>
+                <div class="ins-row">
+                  <label><input type="checkbox" /> Auto Fade</label>
+                  <button class="btn-mini right">Clear All</button>
+                </div>
+                <div class="grid-item" style="height: 60px; margin-top: 10px">
+                  <span class="placeholder-text" style="font-size: 8px"
+                    >NO GFX LOADED</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div id="content-layouts" class="tab-content">
+              <div class="ins-section">
+                <span class="label-tiny">Screen Configuration</span>
+                <div class="shape-grid">
+                  <button class="toggle-button active">QUAD</button>
+                  <button class="toggle-button">1+3</button>
+                  <button class="toggle-button">SIDE</button>
+                  <button class="toggle-button">FULL</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="content-templates" class="tab-content">
+              <div class="ins-section">
+                <span class="label-tiny">Master Presets</span>
+                <div class="ins-row" style="margin-bottom: 5px">
+                  <button
+                    class="btn-vada-utility"
+                    style="margin: 0; padding: 5px"
+                  >
+                    LOAD SHOW PRESET
+                  </button>
+                </div>
+                <div class="ins-row">
+                  <button
+                    class="btn-vada-utility"
+                    style="margin: 0; padding: 5px"
+                  >
+                    SAVE CURRENT
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul id="sidebar-popup-menu" class="custom-dropdown-list">
+      <li data-value="pip">PIP/Chromakey</li>
+      <li data-value="warping">Warping</li>
+      <li data-value="vcam">Vcam</li>
+    </ul>
+
+    <div id="input-context-menu" class="vada-context-menu">
+      <div class="menu-item has-submenu" data-type="hardware">
+        HDMI / SDI <span>▶</span>
+        <div class="submenu">
+          <div class="menu-item" data-value="DeckLink-1">DECKLINK QUAD (1)</div>
+          <div class="menu-item" data-value="DeckLink-2">DECKLINK QUAD (2)</div>
+          <div class="menu-item" data-value="Magewell-USB">MAGEWELL USB</div>
+        </div>
+      </div>
+
+      <div class="menu-item has-submenu" data-type="ndi">
+        NDI SOURCES <span>▶</span>
+        <div class="submenu" id="ndi-sources-list">
+          <div class="menu-item disabled">SEARCHING...</div>
+        </div>
+      </div>
+
+      <div class="menu-item" id="media-trigger" data-type="media">
+        LOCAL MEDIA (FILE)
+      </div>
+
+      <div class="menu-item has-submenu" data-type="screen">
+        SCREEN CAPTURE <span>▶</span>
+        <div class="submenu">
+          <div class="menu-item" data-value="display-0">MONITOR 1 (MAIN)</div>
+          <div class="menu-item" data-value="display-1">MONITOR 2</div>
+          <div class="menu-item" data-value="window-capture">
+            WINDOW SELECT...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="cam-settings-popup"
+      class="vada-inspector-popup"
+      style="display: none"
+    >
+      <div class="popup-header">
+        <span id="popup-cam-title">CAM CONFIGURATION</span>
+        <button id="close-settings-btn" class="close-x">✕</button>
+      </div>
+      <div class="popup-body">
+        <div class="popup-row">
+          <span class="label-tiny">RESOLUTION</span>
+          <select class="ins-input mini">
+            <option>3840x2160 (4K)</option>
+            <option>1920x1080 (FHD)</option>
+          </select>
+        </div>
+        <div class="popup-row">
+          <span class="label-tiny">FRAME RATE</span>
+          <select class="ins-input mini">
+            <option>60 fps</option>
+            <option>30 fps</option>
+          </select>
+        </div>
+        <div class="popup-row">
+          <span class="label-tiny">BITRATE</span>
+          <input
+            type="number"
+            class="ins-input mini"
+            value="25"
+            style="width: 50px"
+          />
+        </div>
+        <button
+          class="btn-ui-take"
+          style="width: 100%; margin-top: 15px; padding: 10px"
+        >
+          APPLY SETTINGS
+        </button>
+      </div>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+</html>
